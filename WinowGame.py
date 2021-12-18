@@ -17,10 +17,23 @@ def load_image(name, colorkey=None):
     image = pygame.image.load(fullname)
     return image
 
+
+class Background(pygame.sprite.Sprite):
+    def __init__(self, image_file, location):
+        pygame.sprite.Sprite.__init__(self)  # call Sprite initializer
+        self.image = pygame.image.load(image_file)
+        self.rect = self.image.get_rect()
+        self.rect.left, self.rect.top = location
+
+
+BackGround = Background('data/fon.png', [0, 0])
+
+
 class Player(pygame.sprite.Sprite):
     image = load_image("stop_zakl.png")
     image_right = load_image("beg_zakl.png")
     image_stop = load_image("stop_zakl.png")
+
     def __init__(self, group):
         # НЕОБХОДИМО вызвать конструктор родительского класса Sprite.
         # Это очень важно !!!
@@ -41,19 +54,23 @@ class Player(pygame.sprite.Sprite):
         elif left:
             if self.rect.x - 6 >= 0:
                 self.rect.x -= 6
+        elif down:
+            if self.rect.y + 6 < 625:
+                self.rect.y += 6
         else:
             self.image = self.image_stop
 
-upp = False
+
+up = False
 left = False
 right = False
+down = False
 player_sprites = pygame.sprite.Group()
 Player(player_sprites)
 
 RUN = True
 FPS = 60
 clock = pygame.time.Clock()
-
 
 while RUN:
     clock.tick(FPS)
@@ -66,6 +83,8 @@ while RUN:
             left = True
         if e.type == pygame.KEYDOWN and e.key == pygame.K_RIGHT:
             right = True
+        if e.type == pygame.KEYDOWN and e.key == pygame.K_DOWN:
+            down = True
 
         if e.type == pygame.KEYUP and e.key == pygame.K_UP:
             up = False
@@ -73,7 +92,10 @@ while RUN:
             right = False
         if e.type == pygame.KEYUP and e.key == pygame.K_LEFT:
             left = False
+        if e.type == pygame.KEYUP and e.key == pygame.K_DOWN:
+            down = False
     screen.fill([255, 255, 255])
+    screen.blit(BackGround.image, BackGround.rect)
     player_sprites.draw(screen)
     player_sprites.update()
     pygame.display.flip()
