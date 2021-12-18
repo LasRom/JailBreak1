@@ -44,7 +44,7 @@ class Player(pygame.sprite.Sprite):
         else:
             self.image = self.image_stop
 
-up = False
+upp = False
 left = False
 right = False
 player_sprites = pygame.sprite.Group()
