@@ -5,8 +5,8 @@ import pygame
 from pygame import *
 
 pygame.init()
-size = width, height = 992, 704
-screen = pygame.display.set_mode(size)
+size = width, height = 992, 704  # размеры окна
+screen = pygame.display.set_mode(size)  # холст
 
 
 def load_image(name, colorkey=-1):
@@ -19,6 +19,7 @@ def load_image(name, colorkey=-1):
     return image
 
 
+# создаем задний фон
 class Background(pygame.sprite.Sprite):
     def __init__(self, image_file, location):
         pygame.sprite.Sprite.__init__(self)  # call Sprite initializer
@@ -29,18 +30,14 @@ class Background(pygame.sprite.Sprite):
 
 BackGround = Background('data/fon.png', [0, 0])
 
-up = False
-left = False
-right = False
-down = False
+up = False  # проверка на движение вверх
+left = False  # проверка движения в лево
+right = False  # проверка движения в право
+down = False  # проверка движения в низ
 
-RUN = True
-FPS = 60
-clock = pygame.time.Clock()
-
-PLATFORM_WIDTH = 32
+PLATFORM_WIDTH = 32  # размеры платформы
 PLATFORM_HEIGHT = 32
-PLATFORM_COLOR = "#FF6262"
+PLATFORM_COLOR = (128, 128, 128)  # цвет платформы
 
 all_sprites = pygame.sprite.Group()  # Все объекты
 platforms = []  # то, во что мы будем врезаться или опираться
@@ -76,10 +73,15 @@ class Player(pygame.sprite.Sprite):
             self.image = self.image_stop
         if not (left and up and right and down):
             self.image = self.image_stop
+
         if not pygame.sprite.collide_mask(self, pf):
+            print(1, pf)
             self.rect = self.rect.move(0, 1)
+        else:
+            print(2)
 
 
+# оздаем игрока
 hero = Player()
 
 
@@ -92,28 +94,29 @@ class Platform(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.image)
 
 
+# временный  уровень
 level = [
     "-------------------------------",
-    "-                             -",
-    "-                             -",
-    "-                             -",
-    "-            --               -",
-    "-                             -",
-    "--                            -",
-    "-                             -",
-    "-                   ---       -",
-    "-                             -",
-    "-                             -",
-    "-      ---                    -",
-    "-                             -",
-    "-   -----------               -",
-    "-                             -",
-    "-                -            -",
-    "-                   --        -",
-    "-                             -",
-    "-                             -",
-    "-                             -",
-    "-                             -",
+    "                               ",
+    "                               ",
+    "                               ",
+    "                               ",
+    "-------  ----------------------",
+    "                               ",
+    "                               ",
+    "                               ",
+    "-------  ----------------------",
+    "                               ",
+    "                               ",
+    "                               ",
+    "-------  ----------------------",
+    "                               ",
+    "                               ",
+    "                               ",
+    "-------  ----------------------",
+    "                               ",
+    "                               ",
+    "                               ",
     "-------------------------------"]
 x = y = 0  # координаты
 for row in level:  # вся строка
@@ -127,6 +130,9 @@ for row in level:  # вся строка
     x = 0  # на каждой новой строчке начинаем с нуля
 all_sprites.add(hero)
 
+RUN = True
+FPS = 60
+clock = pygame.time.Clock()
 while RUN:
     screen.fill([255, 255, 255])
     clock.tick(FPS)
@@ -151,7 +157,6 @@ while RUN:
         if e.type == pygame.KEYUP and e.key == pygame.K_DOWN:
             down = False
     screen.blit(BackGround.image, BackGround.rect)
-    print(all_sprites)
     all_sprites.draw(screen)
     all_sprites.update()
     pygame.display.flip()
