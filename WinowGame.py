@@ -2,13 +2,14 @@ import os
 import sys
 
 import pygame
+from pygame import *
 
 pygame.init()
-size = width, height = 1000, 700
+size = width, height = 992, 704
 screen = pygame.display.set_mode(size)
 
 
-def load_image(name, colorkey=None):
+def load_image(name, colorkey=-1):
     fullname = os.path.join('data', name)
     # если файл не существует, то выходим
     if not os.path.isfile(fullname):
@@ -28,65 +29,120 @@ class Background(pygame.sprite.Sprite):
 
 BackGround = Background('data/fon.png', [0, 0])
 
+up = False
+left = False
+right = False
+down = False
+
+RUN = True
+FPS = 60
+clock = pygame.time.Clock()
+
+PLATFORM_WIDTH = 32
+PLATFORM_HEIGHT = 32
+PLATFORM_COLOR = "#FF6262"
+
+all_sprites = pygame.sprite.Group()  # Все объекты
+platforms = []  # то, во что мы будем врезаться или опираться
+
 
 class Player(pygame.sprite.Sprite):
     image = load_image("stop_zakl.png")
     image_right = load_image("beg_zakl.png")
     image_stop = load_image("stop_zakl.png")
 
-    def __init__(self, group):
+    def __init__(self):
         # НЕОБХОДИМО вызвать конструктор родительского класса Sprite.
         # Это очень важно !!!
-        super().__init__(group)
+        super().__init__(all_sprites)
         self.image = Player.image
         self.rect = self.image.get_rect()
-        self.rect.x = 0
-        self.rect.y = 620
+        self.rect.x = 50
+        self.rect.y = 50
+        self.mask = pygame.mask.from_surface(self.image)
 
     def update(self):
         if up:
-            if self.rect.y - 6 > 0:
-                self.rect.y -= 6
-        elif right:
-            if self.rect.x + 6 < 965:
-                self.image = self.image_right
-                self.rect.x += 6
-        elif left:
-            if self.rect.x - 6 >= 0:
-                self.rect.x -= 6
-        elif down:
-            if self.rect.y + 6 < 625:
-                self.rect.y += 6
-        else:
+            self.rect.y -= 5
             self.image = self.image_stop
+        if right:
+            self.image = self.image_right
+            self.rect.x += 5
+        if left:
+            self.rect.x -= 5
+            self.image = self.image_stop
+        if down:
+            self.rect.y += 5
+            self.image = self.image_stop
+        if not (left and up and right and down):
+            self.image = self.image_stop
+        if not pygame.sprite.collide_mask(self, pf):
+            self.rect = self.rect.move(0, 1)
 
 
-up = False
-left = False
-right = False
-down = False
-player_sprites = pygame.sprite.Group()
-Player(player_sprites)
+hero = Player()
 
-RUN = True
-FPS = 60
-clock = pygame.time.Clock()
+
+class Platform(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__(all_sprites)
+        self.image = Surface((PLATFORM_WIDTH, PLATFORM_HEIGHT))
+        self.image.fill(Color(PLATFORM_COLOR))
+        self.rect = Rect(x, y, PLATFORM_WIDTH, PLATFORM_HEIGHT)
+        self.mask = pygame.mask.from_surface(self.image)
+
+
+level = [
+    "-------------------------------",
+    "-                             -",
+    "-                             -",
+    "-                             -",
+    "-            --               -",
+    "-                             -",
+    "--                            -",
+    "-                             -",
+    "-                   ---       -",
+    "-                             -",
+    "-                             -",
+    "-      ---                    -",
+    "-                             -",
+    "-   -----------               -",
+    "-                             -",
+    "-                -            -",
+    "-                   --        -",
+    "-                             -",
+    "-                             -",
+    "-                             -",
+    "-                             -",
+    "-------------------------------"]
+x = y = 0  # координаты
+for row in level:  # вся строка
+    for col in row:  # каждый символ
+        if col == "-":
+            pf = Platform(x, y)
+            all_sprites.add(pf)
+            platforms.append(pf)
+        x += PLATFORM_WIDTH  # блоки платформы ставятся на ширине блоков
+    y += PLATFORM_HEIGHT  # то же самое и с высотой
+    x = 0  # на каждой новой строчке начинаем с нуля
+all_sprites.add(hero)
 
 while RUN:
+    screen.fill([255, 255, 255])
     clock.tick(FPS)
     for e in pygame.event.get():  # Обрабатываем события
         if e.type == pygame.QUIT:
             RUN = False
-        if e.type == pygame.KEYDOWN and e.key == pygame.K_UP:
-            up = True
         if e.type == pygame.KEYDOWN and e.key == pygame.K_LEFT:
             left = True
         if e.type == pygame.KEYDOWN and e.key == pygame.K_RIGHT:
             right = True
         if e.type == pygame.KEYDOWN and e.key == pygame.K_DOWN:
             down = True
+        if e.type == KEYDOWN and e.key == K_UP:
+            up = True
 
-        if e.type == pygame.KEYUP and e.key == pygame.K_UP:
+        if e.type == KEYUP and e.key == K_UP:
             up = False
         if e.type == pygame.KEYUP and e.key == pygame.K_RIGHT:
             right = False
@@ -94,10 +150,10 @@ while RUN:
             left = False
         if e.type == pygame.KEYUP and e.key == pygame.K_DOWN:
             down = False
-    screen.fill([255, 255, 255])
     screen.blit(BackGround.image, BackGround.rect)
-    player_sprites.draw(screen)
-    player_sprites.update()
+    print(all_sprites)
+    all_sprites.draw(screen)
+    all_sprites.update()
     pygame.display.flip()
 
 pygame.quit()
