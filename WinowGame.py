@@ -57,6 +57,7 @@ class Player(pygame.sprite.Sprite):
         self.rect.x = 50
         self.rect.y = 50
         self.mask = pygame.mask.from_surface(self.image)
+        self.flag = True
 
     def update(self):
         if up:
@@ -73,12 +74,16 @@ class Player(pygame.sprite.Sprite):
             self.image = self.image_stop
         if not (left and up and right and down):
             self.image = self.image_stop
-
-        if not pygame.sprite.collide_mask(self, pf):
-            print(1, pf)
-            self.rect = self.rect.move(0, 1)
-        else:
-            print(2)
+        for el in platforms:
+            print(el)
+            if not pygame.sprite.collide_mask(self, el):
+                print(1, pf)
+                self.flag = True
+            else:
+                self.flag = False
+                break
+        if self.flag:
+            self.rect = self.rect.move(0, 3)
 
 
 # оздаем игрока
@@ -101,19 +106,19 @@ level = [
     "                               ",
     "                               ",
     "                               ",
-    "-------  ----------------------",
+    "-----------------------  ------",
     "                               ",
     "                               ",
     "                               ",
-    "-------  ----------------------",
+    "------------  -----------------",
     "                               ",
     "                               ",
     "                               ",
-    "-------  ----------------------",
+    "-  ----------------------------",
     "                               ",
     "                               ",
     "                               ",
-    "-------  ----------------------",
+    "---------------------------  --",
     "                               ",
     "                               ",
     "                               ",
