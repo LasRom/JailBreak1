@@ -15,6 +15,7 @@ PLATFORM_WIDTH = 32  # размеры платформы и лестницы
 PLATFORM_HEIGHT = 32
 PLATFORM_COLOR = (128, 128, 128)  # цвет платформы
 STAIRS_COLOR = (255, 0, 0)
+DOOR_COLOR = (0, 0, 255)
 FPS = 60  # кол-во кадров
 clock = pygame.time.Clock()
 
@@ -24,6 +25,8 @@ platforms = pygame.sprite.Group()
 hero_sprite = pygame.sprite.Group()
 stairs_sprite = pygame.sprite.Group()
 platforms_and_stairs = pygame.sprite.Group()
+door_sprite = pygame.sprite.Group()
+policemen_sprite = pygame.sprite.Group()
 
 
 # функция которая завершает работу
@@ -103,6 +106,7 @@ class Player(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.image)
         self.flag_g = True  # если в воздухе
         self.flag_st = False  # если на лестнице
+        self.flag_st_dop = True
 
     def update(self):
         # проверяю не в воздухе ли персонаж
@@ -122,6 +126,13 @@ class Player(pygame.sprite.Sprite):
             else:
                 self.flag_st = True
                 break
+        # доп проверка для исправления одного из багов
+        for el in platforms:
+            if pygame.sprite.collide_mask(self, el):
+                self.flag_st_dop = False
+                break
+            else:
+                self.flag_st_dop = True
         # если в воздухе то он равномерно падает
         if UP and self.flag_st:
             self.rect.y -= 5
@@ -132,7 +143,7 @@ class Player(pygame.sprite.Sprite):
         if LEFT and self.rect.x - 5 > 30:
             self.rect.x -= 5
             self.image = self.image_stop
-        if DOWN and self.flag_st:
+        if DOWN and self.flag_st and self.flag_st_dop:
             self.rect.y += 5
             self.image = self.image_stop
         if not (LEFT and UP and RIGHT and DOWN):
@@ -170,6 +181,37 @@ class Platform(pygame.sprite.Sprite):
             self.image.fill(Color(STAIRS_COLOR))
             self.rect = Rect(x, y, PLATFORM_WIDTH, PLATFORM_HEIGHT)
             self.mask = pygame.mask.from_surface(self.image)
+        elif plat == "дверь":
+            self.image = Surface((PLATFORM_WIDTH, PLATFORM_HEIGHT))
+            self.image.fill(Color(DOOR_COLOR))
+            self.rect = Rect(x, y, PLATFORM_WIDTH, PLATFORM_HEIGHT)
+            self.mask = pygame.mask.from_surface(self.image)
+
+
+class Creat_Police(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__(all_sprites)
+        self.image = Surface((PLATFORM_WIDTH, PLATFORM_HEIGHT))
+        self.image.fill(Color(PLATFORM_COLOR))
+        self.x = x
+        self.y = y
+        self.rect = Rect(self.x, self.y, PLATFORM_WIDTH, PLATFORM_HEIGHT)
+        self.mask = pygame.mask.from_surface(self.image)
+        self.flag = True
+
+    def update(self):
+        if self.x + 3 > width - 70:
+            self.flag = False
+        elif self.x - 3 < 32:
+            self.flag = True
+        if self.flag:
+            self.x += 1.5
+            self.rect = Rect(int(self.x), self.y, PLATFORM_WIDTH, PLATFORM_HEIGHT)
+        else:
+            self.x -= 1.5
+            self.rect = Rect(int(self.x), self.y, PLATFORM_WIDTH, PLATFORM_HEIGHT)
+
+
 
 
 x = y = 0
@@ -185,6 +227,13 @@ for row in level:  # вся строка
             all_sprites.add(pf)
             stairs_sprite.add(pf)
             platforms_and_stairs.add(pf)
+        elif col == "D":
+            pf = Platform(x, y, plat="дверь")
+            all_sprites.add(pf)
+            door_sprite.add(pf)
+        elif col == "P":
+            pol = Creat_Police(x, y)
+            policemen_sprite.add(pol)
         x += PLATFORM_WIDTH  # блоки платформы ставятся на ширине блоков
     y += PLATFORM_HEIGHT  # то же самое и с высотой
     x = 0  # на каждой новой строчке начинаем с нуля
@@ -220,6 +269,8 @@ while RUN:
     screen.blit(BackGround.image, BackGround.rect)
     all_sprites.draw(screen)
     all_sprites.update()
+    policemen_sprite.draw(screen)
+    policemen_sprite.update()
     pygame.display.flip()
 
 pygame.quit()
