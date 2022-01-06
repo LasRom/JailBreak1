@@ -36,14 +36,11 @@ walkRight = [pygame.image.load('data/z_beg_right_1.png'),
              pygame.image.load('data/z_beg_right_2.png')]
 
 walkLeft = [pygame.image.load('data/z_beg_left_1.png'),
-             pygame.image.load('data/z_beg_left_2.png'),
-             pygame.image.load('data/z_beg_left_3.png'),
-             pygame.image.load('data/z_beg_left_4.png'),
-             pygame.image.load('data/z_beg_left_1.png'),
-             pygame.image.load('data/z_beg_left_2.png')]
-
-
-
+            pygame.image.load('data/z_beg_left_2.png'),
+            pygame.image.load('data/z_beg_left_3.png'),
+            pygame.image.load('data/z_beg_left_4.png'),
+            pygame.image.load('data/z_beg_left_1.png'),
+            pygame.image.load('data/z_beg_left_2.png')]
 
 # все спрайты
 all_sprites = pygame.sprite.Group()  # Все объекты
@@ -189,6 +186,8 @@ class Player(pygame.sprite.Sprite):
             self.rect.y += self.speed
         else:
             self.image = self.image_stop
+
+
 # временный  уровень
 def load_level(filename):
     filename = "levels/" + filename
