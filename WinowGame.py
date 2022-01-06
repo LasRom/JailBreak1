@@ -265,6 +265,7 @@ class Creat_Police(pygame.sprite.Sprite):
 
 x = 0
 y = 0
+
 for row in level:  # вся строка
     for col in row:  # каждый символ
         if col == "-":
