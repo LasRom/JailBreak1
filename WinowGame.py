@@ -12,6 +12,13 @@ LEFT = False  # проверка движения в лево
 RIGHT = False  # проверка движения в право
 DOWN = False  # проверка движения в низ
 HERO = None
+font = pygame.font.Font(None, 32)
+SCORE = 0  # кол-во отмычек
+COLOR_MASRTER_KEY = (0, 12, 90)
+SCORE_TEXT = 'Уроыень 1   Отмычки 0'
+text = font.render(SCORE_TEXT, True, (255, 0, 0))
+scoreboard_space = text.get_rect(center=(140, 20))
+screen.blit(text, scoreboard_space)
 PLATFORM_WIDTH = 32  # размеры платформы и лестницы
 PLATFORM_HEIGHT = 32
 PLATFORM_COLOR = (128, 128, 128)  # цвет платформы
@@ -19,6 +26,24 @@ STAIRS_COLOR = (255, 0, 0)
 DOOR_COLOR = (0, 0, 255)
 FPS = 60  # кол-во кадров
 clock = pygame.time.Clock()
+
+anim_count = 0
+walkRight = [pygame.image.load('data/z_beg_right_1.png'),
+             pygame.image.load('data/z_beg_right_2.png'),
+             pygame.image.load('data/z_beg_right_3.png'),
+             pygame.image.load('data/z_beg_right_4.png'),
+             pygame.image.load('data/z_beg_right_1.png'),
+             pygame.image.load('data/z_beg_right_2.png')]
+
+walkLeft = [pygame.image.load('data/z_beg_left_1.png'),
+             pygame.image.load('data/z_beg_left_2.png'),
+             pygame.image.load('data/z_beg_left_3.png'),
+             pygame.image.load('data/z_beg_left_4.png'),
+             pygame.image.load('data/z_beg_left_1.png'),
+             pygame.image.load('data/z_beg_left_2.png')]
+
+
+
 
 # все спрайты
 all_sprites = pygame.sprite.Group()  # Все объекты
@@ -28,6 +53,7 @@ stairs_sprite = pygame.sprite.Group()
 platforms_and_stairs = pygame.sprite.Group()
 door_sprite = pygame.sprite.Group()
 policemen_sprite = pygame.sprite.Group()
+master_key_sprite = pygame.sprite.Group()
 
 
 # функция которая завершает работу
@@ -93,7 +119,6 @@ BackGround = Background('data/fon.png', [0, 0])
 
 class Player(pygame.sprite.Sprite):
     image = load_image("stop_zakl.png")
-    image_right = load_image("beg_zakl.png")
     image_stop = load_image("stop_zakl.png")
 
     def __init__(self, x, y):
@@ -112,6 +137,7 @@ class Player(pygame.sprite.Sprite):
         self.flag_st_dop = True
 
     def update(self):
+        global SCORE, anim_count
         # проверяю не дошел ли герой до двери
         for el in door_sprite:
             if pygame.sprite.collide_mask(self, el):
@@ -123,6 +149,12 @@ class Player(pygame.sprite.Sprite):
             else:
                 self.flag_g = False
                 break
+        for el in master_key_sprite:
+            if pygame.sprite.collide_mask(self, el):
+                master_key_sprite.remove(el)
+                all_sprites.remove(el)
+                SCORE += 1
+
         # если в воздухе то он равномерно падает
         if self.flag_g:
             self.rect = self.rect.move(0, 3)
@@ -141,22 +173,22 @@ class Player(pygame.sprite.Sprite):
             else:
                 self.flag_st_dop = True
         # движение вверх, вправо, влево, вниз
+        if anim_count + 1 >= 60:
+            anim_count = 0
         if UP and self.flag_st:
             self.rect.y -= 5
-            self.image = self.image_stop
-        if RIGHT and self.rect.x + self.speed < width - 70:
-            self.image = self.image_right
+        elif RIGHT and self.rect.x + self.speed < width - 70:
             self.rect.x += self.speed
-        if LEFT and self.rect.x - self.speed > 33:
+            self.image = walkRight[anim_count // 10]
+            anim_count += 1
+        elif LEFT and self.rect.x - self.speed > 33:
             self.rect.x -= self.speed
-            self.image = self.image_stop
-        if DOWN and self.flag_st and self.flag_st_dop:
+            self.image = walkLeft[anim_count // 10]
+            anim_count += 1
+        elif DOWN and self.flag_st and self.flag_st_dop:
             self.rect.y += self.speed
+        else:
             self.image = self.image_stop
-        if not (LEFT and UP and RIGHT and DOWN):
-            self.image = self.image_stop
-
-
 # временный  уровень
 def load_level(filename):
     filename = "levels/" + filename
@@ -177,6 +209,7 @@ print(level)
 
 class Platform(pygame.sprite.Sprite):
     image_stairs = load_image("Лестница.png")
+    image_otm = load_image("Отмычка.png")
 
     def __init__(self, x, y, plat="стена"):
         super().__init__(all_sprites)
@@ -195,16 +228,23 @@ class Platform(pygame.sprite.Sprite):
             self.image.fill(Color(DOOR_COLOR))
             self.rect = Rect(x, y, PLATFORM_WIDTH, PLATFORM_HEIGHT)
             self.mask = pygame.mask.from_surface(self.image)
+        elif plat == "отмычка":
+            self.image = Platform.image_otm
+            self.image = pygame.transform.scale(self.image, (32, 32))
+            self.rect = Rect(x, y, PLATFORM_WIDTH, PLATFORM_HEIGHT)
+            self.mask = pygame.mask.from_surface(self.image)
 
 
 class Creat_Police(pygame.sprite.Sprite):
+    image = load_image("stop_zakl.png")
+
     def __init__(self, x, y):
         super().__init__(all_sprites)
-        self.image = Surface((PLATFORM_WIDTH, PLATFORM_HEIGHT))
-        self.image.fill(Color(PLATFORM_COLOR))
-        self.x = x
-        self.y = y
-        self.rect = Rect(self.x, self.y, PLATFORM_WIDTH, PLATFORM_HEIGHT)
+        self.x = x - 45
+        self.y = y - 45
+        self.image = Creat_Police.image
+        self.image = pygame.transform.scale(self.image, (36, 81))
+        self.rect = Rect(x, y, PLATFORM_WIDTH, PLATFORM_HEIGHT)
         self.mask = pygame.mask.from_surface(self.image)
         self.flag = True
 
@@ -248,6 +288,10 @@ for row in level:  # вся строка
             hero = Player(x, y)
             hero_sprite.add(hero)
             HERO = hero
+        elif col == "O":
+            pf = Platform(x, y, plat="отмычка")
+            all_sprites.add(pf)
+            master_key_sprite.add(pf)
         x += PLATFORM_WIDTH  # блоки платформы ставятся на ширине блоков
     y += PLATFORM_HEIGHT  # то же самое и с высотой
     x = 0  # на каждой новой строчке начинаем с нуля
@@ -262,20 +306,24 @@ while RUN:
             RUN = False
         if e.type == pygame.KEYDOWN and e.key == pygame.K_LEFT:
             LEFT = True
-        if e.type == pygame.KEYDOWN and e.key == pygame.K_RIGHT:
+            anim_count = 0
+        elif e.type == pygame.KEYDOWN and e.key == pygame.K_RIGHT:
             RIGHT = True
-        if e.type == pygame.KEYDOWN and e.key == pygame.K_DOWN:
+            anim_count = 0
+        elif e.type == pygame.KEYDOWN and e.key == pygame.K_DOWN:
             DOWN = True
-        if e.type == KEYDOWN and e.key == K_UP:
+        elif e.type == KEYDOWN and e.key == K_UP:
             UP = True
+        else:
+            anim_count = 0
 
         if e.type == KEYUP and e.key == K_UP:
             UP = False
-        if e.type == pygame.KEYUP and e.key == pygame.K_RIGHT:
+        elif e.type == pygame.KEYUP and e.key == pygame.K_RIGHT:
             RIGHT = False
-        if e.type == pygame.KEYUP and e.key == pygame.K_LEFT:
+        elif e.type == pygame.KEYUP and e.key == pygame.K_LEFT:
             LEFT = False
-        if e.type == pygame.KEYUP and e.key == pygame.K_DOWN:
+        elif e.type == pygame.KEYUP and e.key == pygame.K_DOWN:
             DOWN = False
     screen.blit(BackGround.image, BackGround.rect)
     all_sprites.draw(screen)
@@ -284,6 +332,10 @@ while RUN:
     policemen_sprite.update()
     hero_sprite.draw(screen)
     hero_sprite.update()
+    scoreboard_text = "Уровень 1 Отмычек " + str(SCORE)
+    text = font.render(
+        scoreboard_text, True, (255, 0, 0))
+    screen.blit(text, scoreboard_space)
     pygame.display.flip()
 
 pygame.quit()
