@@ -263,7 +263,8 @@ class Creat_Police(pygame.sprite.Sprite):
             self.rect = Rect(int(self.x), self.y, PLATFORM_WIDTH, PLATFORM_HEIGHT)
 
 
-x = y = 0
+x = 0
+y = 0
 for row in level:  # вся строка
     for col in row:  # каждый символ
         if col == "-":
