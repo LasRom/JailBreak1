@@ -123,7 +123,7 @@ class Player(pygame.sprite.Sprite):
         # Это очень важно !!!
         super().__init__(all_sprites)
         self.image = Player.image
-        self.speed = 3
+        self.speed = 2
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
